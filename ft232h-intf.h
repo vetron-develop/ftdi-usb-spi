@@ -132,6 +132,8 @@ struct ft232h_intf_ops {
  */
 struct mpsse_spi_platform_data {
 	const struct ft232h_intf_ops *ops;
+	struct spi_board_info *spi_info;
+	size_t spi_info_len;
 };
 
 /*
