@@ -578,24 +578,12 @@ static int ftdi_spi_probe(struct platform_device *pdev)
 
 		dev_dbg(&pdev->dev, "slave: '%s', CS: %u\n",
 			pd->spi_info[i].modalias, pd->spi_info[i].chip_select);
-/*
-		ret = ftdi_spi_init_io(master, i);
-		if (ret < 0) {
-			dev_warn(&pdev->dev, "Can't add slave IO: %d\n", ret);
-			continue;
-		}
-*/
+
 		sdev = spi_new_device(master, &pd->spi_info[i]);
 		if (!sdev) {
 			cs = pd->spi_info[i].chip_select;
 			dev_warn(&pdev->dev, "Can't add slave '%s', CS %u\n",
 				 pd->spi_info[i].modalias, cs);
-/*
-			if (priv->lookup[cs]) {
-				gpiod_remove_lookup_table(priv->lookup[cs]);
-				priv->lookup[cs] = NULL;
-			}
-*/
 		}
 	}
 	
@@ -1225,9 +1213,7 @@ static struct platform_device *mpsse_dev_register(struct ft232h_intf_priv *priv,
 {
 	struct device *parent = &priv->intf->dev;
 	struct platform_device *pdev;
-	// struct gpiod_lookup_table *lookup;
-	// size_t lookup_size, tbl_size;
-	int i, ret;
+	int ret;
 
 	pdev = platform_device_alloc(SPI_INTF_DEVNAME, 0);
 	if (!pdev)
@@ -1236,20 +1222,7 @@ static struct platform_device *mpsse_dev_register(struct ft232h_intf_priv *priv,
 	pdev->dev.parent = parent;
 	pdev->dev.fwnode = NULL;
 	priv->spi_pdev = pdev;
-#if 0
-	tbl_size = pd->spi_info_len + 1;
-	lookup_size = sizeof(*lookup) + tbl_size * sizeof(struct gpiod_lookup);
-	lookup = devm_kzalloc(parent, lookup_size, GFP_KERNEL);
-	if (!lookup) {
-		ret = -ENOMEM;
-		goto err;
-	}
 
-	for (i = 0; i < pd->spi_info_len; i++) {
-		dev_dbg(parent, "INFO: %s cs %d\n",
-			pd->spi_info[i].modalias, pd->spi_info[i].chip_select);
-	}
-#endif
 	ret = platform_device_add_data(pdev, pd, sizeof(*pd));
 	if (ret)
 		goto err;
@@ -1400,10 +1373,12 @@ static void ft232h_intf_disconnect(struct usb_interface *intf)
  * USB device information
  */
 static struct usb_device_id ft232h_intf_table[] = {
-//#ifndef CONFIG_USB_SERIAL_FTDI_SIO
+#ifndef CONFIG_USB_SERIAL_FTDI_SIO
 	{ USB_DEVICE(0x0403, 0x6014), .driver_info = (kernel_ulong_t)&ft232h_spi_cfg_intf_info },
-//#endif
+#endif
 	{ USB_DEVICE(0x2beb, 0x0146), .driver_info = (kernel_ulong_t)&ft232h_spi_cfg_intf_info },
+	/* Vetron VTP121 CU SPI Bridge Configured Device PID/VID */
+	{ USB_DEVICE(0xba55, 0x1d6e), .driver_info = (kernel_ulong_t)&ft232h_spi_cfg_intf_info },
 	{}
 };
 MODULE_DEVICE_TABLE(usb, ft232h_intf_table);
