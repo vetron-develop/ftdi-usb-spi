@@ -1,0 +1,3 @@
+# ftdi-usb-spi driver module permissions  
+KERNEL=="spi_ft232h", MODE="0666"
+ACTION=="add", ATTRS{idVendor}=="ba55", ATTRS{idProduct}=="1d6e", RUN+="/sbin/modprobe spi-ft232h"
